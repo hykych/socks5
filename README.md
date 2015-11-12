@@ -1,2 +1,2 @@
 # socks5
-a simple socks5 proxy
+a simple unfinished socks5 proxy
