@@ -33,6 +33,11 @@ struct socks5_request_t
     UINT8 atype;
 };
 
+struct socks5_cfg_t
+{
+    UINT16 port;
+};
+
 typedef socks5_request_t socks5_response_t;
 
 

@@ -1,0 +1,5 @@
+[23:20:39 2015-11-26] [INFOM] {src/socks5/socks5.cpp:422} socks5 staring ...
+[23:20:41 2015-11-26] [ERROR] {src/socks5/socks5.cpp:246} getpeername[9] error.
+[23:20:41 2015-11-26] [ERROR] {src/socks5/socks5.cpp:277} socks5 auth error.
+[23:20:42 2015-11-26] [ERROR] {src/socks5/socks5.cpp:246} getpeername[10] error.
+[23:20:42 2015-11-26] [ERROR] {src/socks5/socks5.cpp:277} socks5 auth error.

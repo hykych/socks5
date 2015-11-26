@@ -1,0 +1,3 @@
+[23:35:13 2015-11-26] [INFOM] {src/socks5/socks5.cpp:432} socks5 staring ...
+[23:35:16 2015-11-26] [ERROR] {src/socks5/socks5.cpp:288} setsockopt error,errno = 92.
+[23:35:16 2015-11-26] [ERROR] {src/socks5/socks5.cpp:291} setsockopt error,errno = 92.

@@ -1,0 +1,3 @@
+[23:06:15 2015-11-26] [INFOM] {src/socks5/socks5.cpp:399} socks5 staring ...
+[23:06:20 2015-11-26] [ERROR] {src/socks5/socks5.cpp:254} socks5 auth error.
+[23:06:20 2015-11-26] [ERROR] {src/socks5/socks5.cpp:254} socks5 auth error.

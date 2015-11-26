@@ -15,8 +15,8 @@
 #include <unistd.h>
 
 
-#include "../inc/def.h"
-#include "../libthread/libthread.h"
+#include "def.h"
+#include "libthread.h"
 
 // prefix of log file
 //#define LIBLOG_PREFIX "log"
