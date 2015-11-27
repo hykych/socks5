@@ -26,11 +26,21 @@ TID_T THREAD_CREATE(void *(*func)(void*),void* param)
 {
     TID_T tid;
     INT32 ret;
+
     pthread_attr_t attr;
-    
     pthread_attr_init(&attr);
+
+    sigset_t newmask,oldmask;
+
+    sigemptyset(&newmask);
+
+    sigaddset(&newmask,SIGPIPE);
+    sigprocmask(SIG_SETMASK,&newmask,&oldmask);
+
     pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_DETACHED);
     ret = pthread_create(&tid,&attr,func,param);
+
+    sigprocmask(SIG_SETMASK,&oldmask,&newmask);
     if(ret == 0)
 	return tid;
     else return (TID_T)-1;

@@ -8,6 +8,24 @@ struct ev_io g_io_accept;
 
 socks5_cfg_t g_cfg;
 
+void deamonize()
+{
+    pid_t pid, sid;
+
+    if((pid = fork()) < 0)
+    {
+	exit(1);
+    }
+
+    if((sid = setsid()) < 0){
+	exit(2);
+    }
+
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
+}
+
 static int socks5_srv_init(UINT16 port,INT32 backlog)
 {
     sockaddr_in serv;
@@ -136,7 +154,7 @@ static INT32 socks5_auth(int sockfd)
 
     //socks5_sockset(sockfd);
 
-    if( -1  ==  recv( sockfd, buf, 2, MSG_WAITALL)) {
+    if( -1  ==  recv( sockfd, buf, 2, 0)) {
 	PRINTF(LEVEL_ERROR,"recv error.\n");
 	goto err;
     }
@@ -170,6 +188,8 @@ static INT32 socks5_auth(int sockfd)
 	((socks5_response_t *)buf)->cmd = SOCKS5_CMD_NOT_SUPPORTED;
 	((socks5_response_t *)buf)->rsv = 0;
 
+	send( sockfd, buf, 4, 0);
+
 	goto err;
     }
 
@@ -182,11 +202,13 @@ static INT32 socks5_auth(int sockfd)
 	    PRINTF(LEVEL_ERROR,"recv error.\n");
 	    goto err;
 	}
+
 	memcpy(&(addr.sin_addr.s_addr), buf, 4);
 	if( -1 == recv(sockfd, buf, 2, 0)) {
 	    PRINTF(LEVEL_ERROR,"recv error.\n");
 	    goto err;
 	}
+
 	memcpy( &(addr.sin_port), buf, 2);
 
 	//PRINTF(LEVEL_DEBUG, "type : IP, %s:%d.\n",inet_ntoa(addr.sin_addr),htons(addr.sin_port));
@@ -196,6 +218,7 @@ static INT32 socks5_auth(int sockfd)
 	struct hostent *hptr;
 
 	memset(&addr,0,sizeof(addr));
+	addr.sin_family = AF_INET;
 
 	if(-1 == recv( sockfd, buf, 1, 0)) {
 	    PRINTF(LEVEL_ERROR,"recv error.\n");
@@ -212,16 +235,26 @@ static INT32 socks5_auth(int sockfd)
 	
 	PRINTF( LEVEL_DEBUG, "type : domain [%s].\n",buf);
 
-	if(NULL == hptr) goto err;
-	if(AF_INET !=hptr->h_addrtype) goto err;
-	if(NULL == *(hptr->h_addr_list)) goto err;
+	if(NULL == hptr) {
+	    PRINTF(LEVEL_ERROR,"gethostbyname error.\n");
+	    goto err;
+	}
+	if(AF_INET !=hptr->h_addrtype) {
+	    PRINTF(LEVEL_ERROR,"addrtype != AF_INET.\n");
+	    goto err;
+	}
+	if(NULL == *(hptr->h_addr_list)){
+	    PRINTF(LEVEL_ERROR,"h_addr_list == NULL.\n");
+	    goto err;
+	}
 
-	addr.sin_family = AF_INET;
 	memcpy( &(addr.sin_addr.s_addr),  *(hptr->h_addr_list), 4);
 
-	if(-1 == recv( sockfd, buf, 2, 0)) goto err;
+	if(-1 == recv( sockfd, buf, 2, 0)) {
+	    PRINTF(LEVEL_ERROR,"recv error.\n");
+	    goto err;
+	}
 	memcpy( &(addr.sin_port), buf, 2);
-
     }
     else
     {
@@ -244,7 +277,7 @@ static INT32 socks5_auth(int sockfd)
         
 	//connect error
 	memcpy(buf,"\x05\x05\x00\x01\x00\x00\x00\x00\x00\x00",10);
-	send(sockfd, buf, 4, 0);
+	send(sockfd, buf, 10, 0);
 
 	goto err;
     }
@@ -335,7 +368,6 @@ static void accept_cb(struct ev_loop* loop,ev_io* watcher,INT32 revents)
 
     client_fd = accept( watcher->fd, (struct sockaddr *)&client_addr, &client_len);
 
-
     if(client_fd < 0)
     {
 	PRINTF(LEVEL_ERROR,"accept fail.\n");
@@ -367,6 +399,7 @@ static void help()
 
     //printf("    -l <level>      debug log level,range [0, 5]\n");
     printf("    -h              print help information\n");
+    printf("    -d <y||Y>       deamonize\n"); 
 }
 
 
@@ -375,10 +408,11 @@ static void help()
 static INT32 check_para(INT32 argc, char* argv[])
 {
     char ch;
+    bool deamon = 0;
     memset(&g_cfg,0,sizeof(g_cfg));
     g_cfg.port = 9999;
 
-    while( (ch = getopt(argc,argv,":p:h")) != -1)
+    while( (ch = getopt(argc,argv,":d:ph")) != -1)
     {
 	switch(ch)
 	{
@@ -388,9 +422,13 @@ static INT32 check_para(INT32 argc, char* argv[])
 	    case 'h':
 		help();
 		exit(0);
+	    case 'd':
+		if(optarg[0] == 'y'|| optarg[0] == 'Y')
+		    deamon = 1;
+		break;
 	}
     }
-
+    if(deamon) deamonize();
     return R_OK;
 }
 

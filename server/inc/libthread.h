@@ -4,7 +4,10 @@
 
 #include <pthread.h>
 #include "../inc/def.h"
-
+#include <stdio.h>
+#include <unistd.h>
+#include <signal.h>
+#include <stdlib.h>
 
 #define TID_T    pthread_t
 
